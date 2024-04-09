@@ -13,9 +13,51 @@ xgb = load('xgb_classifier.joblib')
 
 # Create a Streamlit app
 def main():
-    st.title('Model Testing with Uploaded Data')
+    st.title('Water Potability Prediction App')
 
-    # File upload prompts
+    # User input parameters form
+    st.sidebar.header('Input Water Quality Parameters')
+    st.sidebar.write('Enter parameters to predict potability:')
+
+    def user_input_features():
+        ph = st.sidebar.number_input('pH Level', min_value=0.0, max_value=14.0, value=7.0)
+        Hardness = st.sidebar.number_input('Hardness', min_value=0.0, value=100.0)
+        Solids = st.sidebar.number_input('Solids', min_value=0.0, value=10000.0)
+        Chloramines = st.sidebar.number_input('Chloramines', min_value=0.0, value=7.0)
+        Sulfate = st.sidebar.number_input('Sulfate', min_value=0.0, value=300.0)
+        Conductivity = st.sidebar.number_input('Conductivity', min_value=0.0, value=400.0)
+        Organic_carbon = st.sidebar.number_input('Organic Carbon', min_value=0.0, value=10.0)
+        Trihalomethanes = st.sidebar.number_input('Trihalomethanes', min_value=0.0, value=80.0)
+        Turbidity = st.sidebar.number_input('Turbidity', min_value=0.0, value=4.0)
+        
+        data = {'ph': ph,
+                'Hardness': Hardness,
+                'Solids': Solids,
+                'Chloramines': Chloramines,
+                'Sulfate': Sulfate,
+                'Conductivity': Conductivity,
+                'Organic_carbon': Organic_carbon,
+                'Trihalomethanes': Trihalomethanes,
+                'Turbidity': Turbidity}
+        features = pd.DataFrame(data, index=[0])
+        return features
+
+    input_df = user_input_features()
+
+    # Prediction on user input
+    if st.sidebar.button('Predict Potability'):
+        prediction_rfc = Rfc.predict(input_df)
+        prediction_xgb = xgb.predict(input_df)
+        
+        st.subheader('Prediction Results')
+        result_rfc = 'Potable' if prediction_rfc[0] == 1 else 'Not Potable'
+        result_xgb = 'Potable' if prediction_xgb[0] == 1 else 'Not Potable'
+        
+        st.write('Random Forest Classifier Prediction: **{}**'.format(result_rfc))
+        st.write('XGB Classifier Prediction: **{}**'.format(result_xgb))
+
+    # File upload prompts for model testing
+    st.header('Model Testing with Uploaded Data')
     X_test_file = st.file_uploader("Upload your X_test CSV", type=["csv"])
     y_test_file = st.file_uploader("Upload your y_test CSV", type=["csv"])
 
